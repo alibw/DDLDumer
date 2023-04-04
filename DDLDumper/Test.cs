@@ -58,16 +58,15 @@ public class Test
         var expected = @"USE [College]
 CREATE TABLE Lesson
 (
-[Id] [bigint] NOT NULL,
-[Title] [nvarchar] NOT NULL,
-[UnitNum] [bigint] NOT NULL,
-[MasterId] [bigint] NOT NULL
+  [Id] [bigint] NOT NULL,
+  [Title] [nvarchar] NOT NULL,
+  [UnitNum] [bigint] NOT NULL,
+  [MasterId] [bigint] NOT NULL
 )
 ALTER TABLE [dbo].[Lesson] ADD CONSTRAINT [PK_Lesson] PRIMARY KEY CLUSTERED ([Id])
 ALTER TABLE [dbo].[Lesson] ADD CONSTRAINT [FK_Lesson_Master] FOREIGN KEY ([MasterId]) REFERENCES [dbo].[Master] ([Id])";
         
-    
-        Assert.AreEqual(expected,table.ToSql(false));
+        Assert.AreEqual(expected,table.ToSql());
     }
 
     [Test]
