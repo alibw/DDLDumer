@@ -4,23 +4,19 @@ namespace DDLDumper;
 
 public static class StringCreator
 {
-    private static StringBuilder _sb;
+    private static StringBuilder _sb = new StringBuilder();
 
-    public static string Indent(int count = 2)
+    public static void Indent(int count = 2)
     {
-        _sb = new StringBuilder();
-        for (int i = 0; i <= count; i++)
+        for (int i = 0; i < count; i++)
         {
             _sb.Append(' ');
         }
-
-        return _sb.ToString();
     }
 
-    public static string Unindent(int count = 3)
+    public static void Unindent(int count = 2)
     {
         _sb.Remove(0, count);
-        return _sb.ToString();
     }
 
     public static string WithIndent(this string input)
@@ -28,10 +24,12 @@ public static class StringCreator
         StringBuilder sb = new StringBuilder();
         using (StringReader reader = new StringReader(input))
         {
-            string line;
-            while ((line = reader.ReadLine()) != null)
+            var splittedLines = input.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            foreach(var line in splittedLines)
             {
-                sb.AppendLine($@"{Indent()}{line}");
+                Indent();
+                sb.Append($@"{_sb.ToString()}{line}{(line == splittedLines.Last() ? "" : "\r\n")}");
+                Unindent();
             }
         }
 
