@@ -2,54 +2,58 @@
 
 namespace DDLDumper;
 
-public static class Dumper
+public class Dumper
 {
-    public static string ToSql(this Table table, bool indentation = true)
+    public Table table;
+
+    private StringCreator sc;
+    public Dumper(Table _table)
     {
-        return Dump(table,GetColumns,GetPrimaryKey,GetForeignKeys,indentation);
+        table = _table; 
     }
 
-    public static string Dump(Table table,Func<List<Column>,string> getColumns,Func<Table,string>getPrimaryKey,Func<Table,string>getForeignKeys, bool indentation)
+    public string Dump()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.Append
+        sc = new StringCreator();
+        sc.Append
         (
-$@"USE [{table.DbName}]
-CREATE TABLE {table.TableName}
-(
-{(indentation ? getColumns(table.Properties).WithIndent() : GetColumns(table.Properties))}
-)
-{getPrimaryKey(table)}
-{getForeignKeys(table)}");
-        return sb.ToString();
+$@"CREATE TABLE {table.TableName}
+(");
+        sc.WithIndent(() => {
+            sc.Append(GetColumns());
+        });
+sc.Append($@")
+{GetPrimaryKey()}
+{GetForeignKeys()}");
+        return sc.ToString();
     }
 
-    public static Func<Table, string> GetPrimaryKey = table =>
+    public string GetPrimaryKey()
     {
         var primaryKey = table.Properties.FirstOrDefault(x => x.IsPrimaryKey);
         var primaryKeyLine = $@"ALTER TABLE [dbo].[{table.TableName}] ADD CONSTRAINT [PK_{table.TableName}] PRIMARY KEY CLUSTERED ([{primaryKey.Name}])";
         return primaryKeyLine;
-    };
+    }
 
-    public static Func<List<Column>, string> GetColumns = columns =>
+    public string GetColumns() 
     {
-        StringBuilder sb = new StringBuilder();
-        foreach (var column in columns)
+        //var sc = new StringCreator();
+        foreach (var column in table.Properties)
         {
-            sb.Append($@"[{column.Name}] [{column.Type}] {(column.Nullable ? "NULL" : "NOT NULL")}{(column == columns.Last() ? "" : ",\r\n")}");
+            sc.Append($@"[{column.Name}] [{column.Type}] {(column.Nullable ? "NULL" : "NOT NULL")}{(column == table.Properties.Last() ? "" : ",\r\n")}");
         }
 
-        return sb.ToString();
-    };
+        return sc.ToString();
+    }
 
-    public static Func<Table, string> GetForeignKeys = table =>
+    public string GetForeignKeys()
     {
-        StringBuilder sb = new StringBuilder();
+        StringCreator sb = new StringCreator();
         foreach (var column in table.Properties.Where(x => x.IsForeignKey))
         {
             sb.Append($@"ALTER TABLE [dbo].[{table.TableName}] ADD CONSTRAINT [FK_{table.TableName}_{column.ForeignKeyTable.TableName}] FOREIGN KEY ([{column.Name}]) REFERENCES [dbo].[{column.ForeignKeyTable.TableName}] ([{column.ForeignKeyTable.Properties.FirstOrDefault(x => x.IsPrimaryKey).Name}])");
         }
 
         return sb.ToString();
-    };
+    }
 }

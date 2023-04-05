@@ -2,37 +2,47 @@
 
 namespace DDLDumper;
 
-public static class StringCreator
-{
-    private static StringBuilder _sb = new StringBuilder();
+public class StringCreator
+{      
+    private int indentation; 
 
-    public static void Indent(int count = 2)
+    private StringBuilder _sb;
+
+    public StringCreator()
     {
-        for (int i = 0; i < count; i++)
-        {
-            _sb.Append(' ');
-        }
+        _sb = new StringBuilder();
     }
 
-    public static void Unindent(int count = 2)
+    public void Append(string input)
     {
-        _sb.Remove(0, count);
+        var tabs = new String(' ',indentation);
+       _sb.Append($"{tabs}{input}");
     }
 
-    public static string WithIndent(this string input)
+    public void AppendWithIndent (string input)
     {
-        StringBuilder sb = new StringBuilder();
-        using (StringReader reader = new StringReader(input))
-        {
-            var splittedLines = input.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            foreach(var line in splittedLines)
-            {
-                Indent();
-                sb.Append($@"{_sb.ToString()}{line}{(line == splittedLines.Last() ? "" : "\r\n")}");
-                Unindent();
-            }
-        }
+       
+    }
 
-        return sb.ToString();
+    public string ToString()
+    {
+        return _sb.ToString();
+    }
+
+    public void Indent()
+    {
+        indentation ++;   
+    }
+
+    public void Unindent()
+    {
+        indentation --;
+    }
+
+    public void WithIndent(Action action)
+    {
+        Indent();
+        action();
+        Unindent();
     }
 }
