@@ -1,72 +1,71 @@
-﻿using NUnit.Framework;
+﻿using System.Diagnostics;
+using System.Net.WebSockets;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.ObjectModel;
+using NUnit.Framework;
 
 namespace DDLDumper;
 
 [TestFixture]
 public class Test
 {
-        Table table = new Table()
+    Table table = new Table()
+    {
+        DbName = "College",
+        TableName = "Lesson",
+        Properties = new List<Column>()
+        {
+            new Column
             {
-                DbName = "College",
-                TableName = "Lesson",
-                Properties = new List<Column>()
+                Name = "Id",
+                Type = "bigint",
+                IsIdentity = true,
+                IsPrimaryKey = true
+            },
+            new Column
+            {
+                Name = "Title",
+                Type = "nvarchar"
+            },
+            new Column
+            {
+                Name = "UnitNum",
+                Type = "bigint"
+            },
+            new Column
+            {
+                Name = "MasterId",
+                Type = "bigint",
+                IsForeignKey = true,
+                ForeignKeyTable = new Table()
                 {
-                    new Column
+                    DbName = "College",
+                    TableName = "Master",
+                    Properties = new List<Column>()
                     {
-                        Name = "Id",
-                        Type = "bigint",
-                        IsIdentity = true,
-                        IsPrimaryKey = true
-                    },
-                    new Column
-                    {
-                        Name = "Title",
-                        Type = "nvarchar"
-                    },
-                    new Column
-                    {
-                        Name = "UnitNum",
-                        Type = "bigint"
-                    },
-                    new Column
-                    {
-                        Name = "MasterId",
-                        Type = "bigint",
-                        IsForeignKey = true,
-                        ForeignKeyTable = new Table()
+                        new Column
                         {
-                            DbName = "College",
-                            TableName = "Master",
-                            Properties = new List<Column>()
-                            {
-                                new Column
-                                {
-                                    Name = "Id",
-                                    Type = "bigint",
-                                    IsIdentity = true,
-                                    IsPrimaryKey = true
-                                }
-                            }
+                            Name = "Id",
+                            Type = "bigint",
+                            IsIdentity = true,
+                            IsPrimaryKey = true
                         }
                     }
                 }
-            };
-    
+            }
+        }
+    };
+
     [Test]
     public void ObjectIntoSql()
     {
-        var expected = @"CREATE TABLE Lesson
-(
-  [Id] [bigint] NOT NULL,
-  [Title] [nvarchar] NOT NULL,
-  [UnitNum] [bigint] NOT NULL,
-  [MasterId] [bigint] NOT NULL
-)
-ALTER TABLE [dbo].[Lesson] ADD CONSTRAINT [PK_Lesson] PRIMARY KEY CLUSTERED ([Id])
-ALTER TABLE [dbo].[Lesson] ADD CONSTRAINT [FK_Lesson_Master] FOREIGN KEY ([MasterId]) REFERENCES [dbo].[Master] ([Id])";
-        
+        var projectPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.Parent.FullName;
+        string expectedPath = $@"{projectPath}\DDlDumper\Expected\Expected.txt";
+        string actualPath = $@"{projectPath}\DDlDumper\Actual\Actual.txt";
         Dumper dm = new Dumper(table);
-
-        Assert.AreEqual(expected,dm.Dump());
+        File.WriteAllText(actualPath, dm.Dump());
+        var expected = new MemoryStream(File.ReadAllBytes(expectedPath));
+        var actual = new MemoryStream(File.ReadAllBytes(actualPath));
+        Process.Start("cmd.exe", $"/C start bcompare.exe {expectedPath} {actualPath}");
+        FileAssert.AreEqual(expected, actual);
     }
 }
