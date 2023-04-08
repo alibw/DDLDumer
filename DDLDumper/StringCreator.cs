@@ -18,12 +18,7 @@ public class StringCreator
         var tabs = new String(' ',indentation);
        _sb.Append($"{tabs}{input}");
     }
-
-    public void AppendWithIndent (string input)
-    {
-       
-    }
-
+    
     public string ToString()
     {
         return _sb.ToString();
