@@ -13,4 +13,10 @@
       <PackageReference Include="NUnit3TestAdapter" Version="4.3.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="DDLParser">
+        <HintPath>..\..\SQLParser\DDLParser\bin\Debug\net6.0\DDLParser.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>

@@ -11,6 +11,8 @@ public class Column
     public bool IsPrimaryKey { get; set; }
 
     public bool IsForeignKey { get; set; }
+    
+    public string ForeignKeyTableName { get; set; } 
 
     public Table? ForeignKeyTable { get; set; }
 }

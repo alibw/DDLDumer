@@ -47,7 +47,7 @@ public class Dumper
         foreach (var column in table.Properties.Where(x => x.IsForeignKey))
         {
             sb.Append(
-                $@"ALTER TABLE [dbo].[{table.TableName}] ADD CONSTRAINT [FK_{table.TableName}_{column.ForeignKeyTable.TableName}] FOREIGN KEY ([{column.Name}]) REFERENCES [dbo].[{column.ForeignKeyTable.TableName}] ([{column.ForeignKeyTable.Properties.FirstOrDefault(x => x.IsPrimaryKey).Name}])");
+                $@"ALTER TABLE [dbo].[{table.TableName}] ADD CONSTRAINT [FK_{table.TableName}_{column.ForeignKeyTableName}] FOREIGN KEY ([{column.Name}]) REFERENCES [dbo].[{column.ForeignKeyTableName}] ([{column.ForeignKeyTable.Properties.FirstOrDefault(x => x.IsPrimaryKey).Name}])");
         }
 
         return sb.ToString();
