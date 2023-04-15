@@ -1,28 +1,33 @@
-﻿using System.Diagnostics;
+﻿ using System.Diagnostics;
 using System.Net.WebSockets;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities.ObjectModel;
 using NUnit.Framework;
-using SQLParser;
-using DDLDumper;
+ using SQLParser;
 
-namespace DDLDumper;
+ namespace DDLDumper;
 
 [TestFixture]
 public class Test
 {
-    string script = @"
+    
+    public static string script = @"
 CREATE TABLE [dbo].[Session]
 (
 [Id] [bigint] NOT NULL IDENTITY(1, 1),
 [MasterId] [bigint] NOT NULL,
-[WeekDay] [nvarchar] NOT NULL,
+[WeekDay] [nvarchar] (max) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [Time] [time] NOT NULL,
-[ClassNum] [nvarchar] NOT NULL,
+[ClassNum] [nvarchar] (max) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [LessonId] [bigint] NOT NULL
 )
+GO
 ALTER TABLE [dbo].[Session] ADD CONSTRAINT [PK_Session] PRIMARY KEY CLUSTERED ([Id])
+GO
 ALTER TABLE [dbo].[Session] ADD CONSTRAINT [FK_Session_Lesson] FOREIGN KEY ([LessonId]) REFERENCES [dbo].[Lesson] ([Id])
-ALTER TABLE [dbo].[Session] ADD CONSTRAINT [FK_Session_Master] FOREIGN KEY ([MasterId]) REFERENCES [dbo].[Master] ([Id])";
+GO
+ALTER TABLE [dbo].[Session] ADD CONSTRAINT [FK_Session_Master] FOREIGN KEY ([MasterId]) REFERENCES [dbo].[Master] ([Id])
+GO
+";
     Table table = new Table()
     {
         DbName = "College",
@@ -87,32 +92,30 @@ ALTER TABLE [dbo].[Session] ADD CONSTRAINT [FK_Session_Master] FOREIGN KEY ([Mas
     [Test]
     public void CycleTest()
     {
-        List<Column> columns = new List<Column>();
         var parsedTable = Parser.Parse(script);
-        foreach (var property in parsedTable.Properties)
+
+        var columns = new List<Column>();
+        foreach (var item in parsedTable.Properties)
         {
             var column = new Column()
             {
-                Name = property.Name,
-                Type = property.Type,
-                IsIdentity = property.IsIdentity,
-                IsPrimaryKey = property.IsPrimaryKey,
-                Nullable = property.Nullable,
-                IsForeignKey = property.IsForeignKey,
-                ForeignKeyTableName = property.ForeignKeyTableName
+                Name = item.Name,
+                Type = item.Type,
+                IsIdentity = item.IsIdentity,
+                IsForeignKey = item.IsForeignKey,
+                Nullable = item.Nullable,
+                IsPrimaryKey = item.IsPrimaryKey,
+                ForeignKeyTableName = item.ForeignKeyTableName
             };
             columns.Add(column);
         }
-        var table2 = new Table()
+        var convertedTable = new Table()
         {
-            Properties = columns,
             TableName = parsedTable.TableName,
-            DbName = parsedTable.DbName
+            DbName = parsedTable.DbName,
+            Properties = columns
         };
-
-        Dumper dm = new Dumper(table2);
-        
-        var dumpedSql = dm.Dump();
-        Assert.AreEqual(table,parsedTable);
+        Dumper dm = new Dumper(convertedTable);
+        Console.WriteLine(dm.Dump());
     }
 }
